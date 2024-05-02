@@ -10,9 +10,10 @@ from AstLib import Node
 
 import pickle
 
-def generateLexer(file_path):
+def generateLexer(pklName,file_path):
     definitions_id = []
     tokens_regex = []
+    yalex_tokens = []
         
     yalexRecognizer = YalexRecognizer()
 
@@ -47,14 +48,21 @@ def generateLexer(file_path):
 
         i=0
 
-        # print(tokens_regex)
-        # print('\n')
+        print(tokens_regex)
+        print('\n')
         #Reemplazando las variables de las definiciones en el regex de tokens
+        new_tokens_regex = []
         while i<len(tokens_regex):
-            tokens_regex[i] = yalexRecognizer.valueRecognize(new_afdPos,tokens_regex[i])+'■'
-            i+=1
+            token = yalexRecognizer.valueRecognize(new_afdPos,tokens_regex[i])
 
-        # print(tokens_regex)
+            if token.content!="":
+                new_tokens_regex.append(token.content+'■')
+                yalex_tokens.append(token._id)
+            i+=1
+        
+        tokens_regex = new_tokens_regex
+        print(tokens_regex)
+        print(yalex_tokens)
 
         # k=1
         # for item in tokens_regex:
@@ -79,6 +87,7 @@ def generateLexer(file_path):
             
         #Construccion AFD
         afd = AfdLib.createLexerAFD(lexer,yalexRecognizer.get_rule_tokens())
+        afd.yalex_tokens = set(yalex_tokens)
         # afd_graph = AfLib.plot_af(afd.start)
         # nombre_archivo_pdf = 'AFD'
         # afd_graph.view(filename=nombre_archivo_pdf,cleanup=True)
@@ -93,7 +102,7 @@ def generateLexer(file_path):
         # ast_graph.view(filename=nombre_archivo_pdf,cleanup=True)
     
         # Abrimos un archivo en modo binario de escritura
-        with open('afd.pkl', 'wb') as archivo_salida:
+        with open(pklName, 'wb') as archivo_salida:
             # Serializamos el objeto y lo guardamos en el archivo
             pickle.dump(afd, archivo_salida)
             

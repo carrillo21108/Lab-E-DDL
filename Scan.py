@@ -1,25 +1,9 @@
-#ScanFrame.py
-
-import pickle
-import ScanGenerator
-import AfLib
-
-if __name__ == "__main__":
-
-    yalName = input("Ingrese el nombre del archivo yal a reconocer: ")
-    pklName = input("Ingrese el nombre del archivo pkl a generar: ")
-    pyName = input("Ingrese el nombre del archivo py a generar: ")
-    res = ScanGenerator.generateLexer(pklName,yalName)
-
-    if res:
-        header = res.get_actions()[0][1:-1] if len(res.get_actions())>0 else ""
-        trailer = res.get_actions()[1][1:-1] if len(res.get_actions())>1 else ""
-        
-        # Definir el contenido del nuevo archivo Python Scan.py
-        contenido = f"""#Scan.py
+#Scan.py
 # Este es un archivo Python generado automaticamente
 import pickle
-{header}
+
+print("header")
+
             
 def step_simulate_AFD(afd,c,lookAhead):
     res = afd.step_simulation(c, lookAhead)
@@ -55,15 +39,15 @@ def segmentRecognize(afd,i,content):
         i += 1  # Incrementa la posicion para el proximo caracter
         
 def genericFunction(value,content):
-    local_namespace = {{}}
+    local_namespace = {}
     local_namespace['value'] = value
 
-    codigo_funcion = f'def tempFunction(value):\\n'
+    codigo_funcion = f'def tempFunction(value):\n'
     if len(content)>0:
-        for linea in content.split('\\n'):
-            codigo_funcion += f'    {{linea}}\\n'
+        for linea in content.split('\n'):
+            codigo_funcion += f'    {linea}\n'
     else:
-        codigo_funcion += f'    return None\\n'
+        codigo_funcion += f'    return None\n'
         
     codigo_funcion += 'resultado = tempFunction(value)'
     
@@ -75,7 +59,7 @@ def genericFunction(value,content):
         return local_namespace['resultado']
         
     except Exception as e:
-        print(f"Error al ejecutar el codigo: {{e}}")
+        print(f"Error al ejecutar el codigo: {e}")
         return None
             
 def tokensRecognize(afd,txtContent):
@@ -92,13 +76,13 @@ def tokensRecognize(afd,txtContent):
             resultado = resultado if resultado!=None else ""
             print(resultado)
         elif not res[0] and first!=len(txtContent):
-            message = f"-- ERROR LEXICO -- al reconocer archivo txt en caracter no. {{res[1]+1}}: "
+            message = f"-- ERROR LEXICO -- al reconocer archivo txt en caracter no. {res[1]+1}: "
             posicion = ' '*len(message)
             for item in txtContent[first:res[1]]:
-                if item=='\\n':
-                    posicion+='\\n'
-                elif item=='\\t':
-                    posicion+='\\t'
+                if item=='\n':
+                    posicion+='\n'
+                elif item=='\t':
+                    posicion+='\t'
                 else:
                     posicion+=' '
                     
@@ -112,7 +96,7 @@ def tokensRecognize(afd,txtContent):
         first = nextFirst
 
 #Lectura del objeto pkl
-with open('{pklName}', 'rb') as archivo_entrada:
+with open('afd.pkl', 'rb') as archivo_entrada:
     afd = pickle.load(archivo_entrada)
 
 document = input("Ingrese el nombre del archivo a escanear: ")                
@@ -121,16 +105,6 @@ with open(document, 'r', encoding='utf-8') as file:
     txtContent = file.read()  # Leer todo el contenido del archivo
         
 tokensRecognize(afd,txtContent)
-{trailer}
-"""
 
+print("trailer")
 
-        # Especificar el nombre del archivo que deseas crear
-        nombre_archivo = pyName
-
-        # Abrir el archivo para escritura
-        with open(nombre_archivo, 'w') as archivo:
-            # Escribir el contenido al archivo
-            archivo.write(contenido)
-
-        print(f'Archivo {nombre_archivo} generado con exito.')

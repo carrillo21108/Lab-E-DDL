@@ -2,13 +2,27 @@
 
 import AfdLib
 
+class TokenId:
+    genericId = "TOKEN1"
+
+    def setId(self,_id=None):
+        if _id is None:
+            _id = TokenId.genericId
+            TokenId.genericId = TokenId.genericId[:5]+str(int(TokenId.genericId[5:]) + 1)
+
+        self._id = _id
+
+    def setContent(self,content=""):
+        self.content = content
+
+
 class YalexRecognizer:
     #Son tomadas como espacio, tabulacion y salto de linea literal
     delim_regex = "\"\s\t\n\""
     letter = "'A'-'Z''a'-'z'"
     digit = "'0'-'9'"
     #Mejorable al considerar todos los caracteres ASCII
-    especial_chars = "\",_+-.?!$~`|/:;=<>#^@\\\""
+    especial_chars = "\",_+-.?!$~`|/:;=<>#^@%&\\\""
     parens = "\"()\""
     brackets = "\"\[\]\""
     curly_brackets = "\"{}\""
@@ -36,8 +50,8 @@ class YalexRecognizer:
     action = f"[{open_curly_bracket}][{allLetter}{digit}{delim_regex}{especial_chars}{parens}{kleene}{brackets}{quotes}]*[{close_curly_bracket}]"
 
     
-    comment_regex = f"\(\*[{allLetter}{digit}{blank_space}{especial_chars}{brackets}]*\*\)"
-    definition_regex = f"{let}{ws}{_id}{ws}{equal}{ws}[{letter}{digit}{especial_chars}{brackets}{quotes}{backslash}{blank_space}{parens}{kleene}]+"
+    comment_regex = f"\(\*[{allLetter}{digit}{delim_regex}{especial_chars}{kleene}{brackets}{quotes}]*\*\)"
+    definition_regex = f"{let}{ws}{_id}{ws}{equal}{ws}[{allLetter}{digit}{especial_chars}{brackets}{quotes}{backslash}{blank_space}{parens}{kleene}]+"
     rule_regex = f"{rule}{ws}{_id}{ws}{equal}{ws}[{allLetter}{digit}{delim_regex}{especial_chars}{parens}{kleene}{brackets}{curly_brackets}{quotes}]+[{close_curly_bracket}]"
     
     def __init__(self):
@@ -54,7 +68,7 @@ class YalexRecognizer:
             YalexRecognizer.string,             #9
             YalexRecognizer.union,              #10
             YalexRecognizer.action,             #11
-            ]               
+            ]
         self.afds = []
         for item in regex:
             self.afds.append(AfdLib.createAFD(item+'■'))
@@ -200,9 +214,12 @@ class YalexRecognizer:
     def valueRecognize(self,new_afdPos,content):
         # Inicializa la posición
         # print(content)
+        token_id = TokenId()
         new_content = ""
         first = 0
         change = True
+        firstIteration = True
+
         while change:
             while first<=len(content):
                 #Longer sera utilizado para encontrar la primera aceptacion encontrada mas larga
@@ -224,15 +241,27 @@ class YalexRecognizer:
                     #     print("NO ACEPTADO por " + str(i))
         
                 if longer[0]==9: #String
+                    if firstIteration:
+                        token_id.setId()
+
                     new_content+=longer[2]
                     first = longer[1]
                 
                 elif longer[0]!=-1: #identificador
+                    if firstIteration:
+                        token_id.setId(longer[2])
+
                     new_content+=self.definitions[longer[2]]
                     first = longer[1]
                 else: #No reconocido
-                    new_content+=content[first] if first<len(content) else ""
-                    first+=1
+                    if firstIteration:
+                        print("ERROR al reconocer TOKEN " + content)
+                        first = len(content)+1
+                    else:
+                        new_content+=content[first] if first<len(content) else ""
+                        first+=1
+
+                firstIteration = False
             
                 # print(longer[0])
                 # input("Presione [Enter] para continuar.")
@@ -244,9 +273,10 @@ class YalexRecognizer:
                 # print("CONTENIDO: "+content)
             else:
                 change = False
+                token_id.setContent(new_content)
                 # print("CONTENIDO: "+content)
             
-        return new_content
+        return token_id
     
     def yalexRecognize(self,yalexContent):
         # Inicializa la posición
