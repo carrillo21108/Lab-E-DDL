@@ -5,6 +5,7 @@ import pickle
 with open('grammar.pkl', 'rb') as archivo_entrada:
     grammar = pickle.load(archivo_entrada)
 
+print(grammar)
 grammar = LRLib.augment_grammar(grammar)
 
 automata = LRLib.generate_LRAutomata(grammar)

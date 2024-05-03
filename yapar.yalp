@@ -1,27 +1,28 @@
 /* Definicion de parser */
 
 /* INICIA Seccion de TOKENS */
-%token ID
-%token PLUS
-%token TIMES
-%token LPAREN RPAREN
-%token WS
-IGNORE WS
+%token id
+%token plus
+%token times
+%token lparen rparen
+%token ws
+IGNORE ws
 /* FINALIZA Seccion de TOKENS */
 
 %%
 
 /* INICIA Seccion de PRODUCCIONES */
 expression:
-    expression PLUS term
+    expression plus term
   | term
 ;
 term:
-    term TIMES factor
+    term times factor
   | factor
 ;
 factor:
-    LPAREN expression RPAREN
-  | ID
+    lparen expression rparen
+  | id
+  | 
 ;
 /* FINALIZA Sección de PRODUCCIONES */

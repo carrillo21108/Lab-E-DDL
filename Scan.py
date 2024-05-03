@@ -2,7 +2,8 @@
 # Este es un archivo Python generado automaticamente
 import pickle
 
-print("header")
+grammar = dict()
+yapar_tokens = set()
 
             
 def step_simulate_AFD(afd,c,lookAhead):
@@ -96,7 +97,7 @@ def tokensRecognize(afd,txtContent):
         first = nextFirst
 
 #Lectura del objeto pkl
-with open('afd.pkl', 'rb') as archivo_entrada:
+with open('yalex.pkl', 'rb') as archivo_entrada:
     afd = pickle.load(archivo_entrada)
 
 document = input("Ingrese el nombre del archivo a escanear: ")                
@@ -106,5 +107,7 @@ with open(document, 'r', encoding='utf-8') as file:
         
 tokensRecognize(afd,txtContent)
 
-print("trailer")
+with open('grammar.pkl', 'wb') as archivo_salida:
+        # Serializamos el diccionario y lo guardamos en el archivo
+        pickle.dump(grammar, archivo_salida)
 
